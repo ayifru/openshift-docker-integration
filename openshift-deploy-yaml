@@ -1,0 +1,33 @@
+FROM adoptopenjdk/openjdk8
+
+ARG ENV
+ARG profile
+
+ENV spring-active-profile="-Dspring.profiles.active=${profile}"
+
+USER root
+
+VOLUME /tmp
+
+RUN mkdir -p /var/logs/plan-recommendation-engine-api \
+&& mkdir -p /opt/plan-recommendation-engine-api \
+&& chmod -R 777 /var/logs/plan-recommendation-engine-api \
+&& mkdir -p /portal/conf/plan-recommendation-engine-api \
+&& chmod -R 777 /portal \
+&& chmod -R 777 /opt/plan-recommendation-engine-api
+
+EXPOSE 8090
+
+COPY external-conf/portal/conf/plan-recommendation-engine-api/${ENV}/* /portal/conf/plan-recommendation-engine-api
+
+COPY target/plan-recommendation-engine-api-*.jar /opt/plan-recommendation-engine-api/plan-recommendation-engine-api.jar
+
+RUN chmod 777 -R /opt/plan-recommendation-engine-api/plan-recommendation-engine-api.jar
+
+ENV JAR_FILE=/opt/plan-recommendation-engine-api/plan-recommendation-engine-api.jar
+
+  #ADD ${JAR_FILE} /opt/plan-recommendation-engine-api/plan-recommendation-engine-api.jar
+
+ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/opt/plan-recommendation-engine-api/plan-recommendation-engine-api.jar"]
+
+#docker build --build-arg ENV=team_e --build-arg profile=dev -t docdoc912/plan-recommendation-engine-api . && docker run --name plan-recommendation-engine-api -p 8090:8090 docdoc912/plan-recommendation-engine-api
